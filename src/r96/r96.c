@@ -2,14 +2,33 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <assert.h>
 #define STBI_NO_STDIO
 #define STBI_NO_HDR
 #define STBI_NO_LINEAR
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#define UNUSED(x) ((void) x)
+
+uint32_t r96_next_utf8_codepoint(const char *data, uint32_t *index, uint32_t end) {
+	static const uint32_t utf8_offsets[6] = {
+			0x00000000UL, 0x00003080UL, 0x000E2080UL,
+			0x03C82080UL, 0xFA082080UL, 0x82082080UL};
+
+	uint32_t character = 0;
+	const unsigned char *bytes = (const unsigned char *) data;
+	int num_bytes = 0;
+	do {
+		character <<= 6;
+		character += bytes[(*index)++];
+		num_bytes++;
+	} while (*index != end && ((bytes[*index]) & 0xC0) == 0x80);
+	character -= utf8_offsets[num_bytes - 1];
+
+	return character;
+}
 
 void r96_byte_buffer_init(r96_byte_buffer *buffer, size_t num_bytes) {
 	buffer->num_bytes = num_bytes;
@@ -36,7 +55,7 @@ bool r96_byte_buffer_init_from_file(r96_byte_buffer *buffer, const char *path) {
 
 _error:
 	fclose(file);
-	if (buffer->bytes) R96_FREE(buffer);
+	if (buffer->bytes) R96_FREE(buffer->bytes);
 	buffer->num_bytes = 0;
 	return false;
 }
@@ -76,13 +95,13 @@ void r96_image_init(r96_image *image, int32_t width, int32_t height) {
 bool r96_image_init_from_file(r96_image *image, const char *path) {
 	r96_byte_buffer buffer;
 	if (!r96_byte_buffer_init_from_file(&buffer, path)) return false;
-	image->pixels = (uint32_t *) stbi_load_from_memory(buffer.bytes, (int)buffer.num_bytes, &image->width, &image->height, NULL, 4);
+	image->pixels = (uint32_t *) stbi_load_from_memory(buffer.bytes, (int) buffer.num_bytes, (int *) &image->width, (int *) &image->height, NULL, 4);
 	r96_byte_buffer_dispose(&buffer);
 	if (image->pixels == NULL) return false;
 
 	uint8_t *bytes = (uint8_t *) image->pixels;
-	int n = image->width * image->height * sizeof(uint32_t);
-	for (int i = 0; i < n; i += 4) {
+	int32_t n = image->width * image->height * sizeof(uint32_t);
+	for (int32_t i = 0; i < n; i += 4) {
 		uint8_t b = bytes[i];
 		bytes[i] = bytes[i + 2];
 		bytes[i + 2] = b;
@@ -94,13 +113,55 @@ void r96_image_dispose(r96_image *image) {
 	R96_FREE(image->pixels);
 }
 
+bool r96_font_init(r96_font *font, const char *path, int32_t glyph_width, int32_t glyph_height) {
+	if (!r96_image_init_from_file(&font->glyphs, path)) return false;
+	font->glyph_width = glyph_width;
+	font->glyph_height = glyph_height;
+	font->tab_size = 3;
+	return true;
+}
+
+void r96_font_dispose(r96_font *font) {
+	r96_image_dispose(&font->glyphs);
+}
+
+void r96_font_get_text_bounds(r96_font *font, const char *text, int32_t *width, int32_t *height) {
+	*width = 0;
+	*height = font->glyph_height;
+	int32_t line_width = 0;
+	uint32_t end = strlen(text);
+	uint32_t index = 0;
+	while (index < end) {
+		uint32_t c = r96_next_utf8_codepoint(text, &index, end);
+
+		if (c == '\n') {
+			*width = line_width > *width ? line_width : *width;
+			line_width = 0;
+			*height += font->glyph_height;
+			continue;
+		}
+
+		if (c == '\t') {
+			line_width += font->glyph_width * font->tab_size;
+			continue;
+		}
+
+		if (c < ' ') {
+			continue;
+		}
+
+		line_width += font->glyph_width;
+	}
+	*width = line_width > *width ? line_width : *width;
+}
+
 void r96_clear(r96_image *image) {
 	memset(image->pixels, 0x0, image->width * image->height * sizeof(uint32_t));
 }
 
 void r96_clear_with_color(r96_image *image, uint32_t color) {
 	uint32_t *pixels = image->pixels;
-	for (int i = 0, n = image->width * image->height; i < n; i++)
+	for (int32_t i = 0, n = image->width * image->height; i < n; i++)
 		pixels[i] = color;
 }
 
@@ -156,15 +217,15 @@ void r96_rect(r96_image *image, int32_t x1, int32_t y1, int32_t width, int32_t h
 	int32_t clipped_width = x2 - x1 + 1;
 	int32_t next_row = image->width - clipped_width;
 	uint32_t *pixel = image->pixels + y1 * image->width + x1;
-	for (int y = y1; y <= y2; y++) {
-		for (int i = 0; i < clipped_width; i++) {
+	for (int32_t y = y1; y <= y2; y++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
 			*pixel++ = color;
 		}
 		pixel += next_row;
 	}
 }
 
-void r96_blit(r96_image *dst, r96_image *src, int x, int y) {
+void r96_blit(r96_image *dst, r96_image *src, int32_t x, int32_t y) {
 	int32_t dst_x1 = x;
 	int32_t dst_y1 = y;
 	int32_t dst_x2 = x + src->width - 1;
@@ -194,7 +255,7 @@ void r96_blit(r96_image *dst, r96_image *src, int x, int y) {
 	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
 	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
 	for (y = dst_y1; y <= dst_y2; y++) {
-		for (int i = 0; i < clipped_width; i++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
 			*dst_pixel++ = *src_pixel++;
 		}
 		dst_pixel += dst_next_row;
@@ -202,7 +263,7 @@ void r96_blit(r96_image *dst, r96_image *src, int x, int y) {
 	}
 }
 
-void r96_blit_keyed(r96_image *dst, r96_image *src, int x, int y, uint32_t color_key) {
+void r96_blit_keyed(r96_image *dst, r96_image *src, int32_t x, int32_t y, uint32_t color_key) {
 	int32_t dst_x1 = x;
 	int32_t dst_y1 = y;
 	int32_t dst_x2 = x + src->width - 1;
@@ -232,7 +293,7 @@ void r96_blit_keyed(r96_image *dst, r96_image *src, int x, int y, uint32_t color
 	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
 	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
 	for (y = dst_y1; y <= dst_y2; y++) {
-		for (int i = 0; i < clipped_width; i++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
 			uint32_t src_color = *src_pixel;
 			uint32_t dst_color = *dst_pixel;
 			*dst_pixel = src_color != color_key ? src_color : dst_color;
@@ -241,5 +302,211 @@ void r96_blit_keyed(r96_image *dst, r96_image *src, int x, int y, uint32_t color
 		}
 		dst_pixel += dst_next_row;
 		src_pixel += src_next_row;
+	}
+}
+
+void r96_blit_region(r96_image *dst, r96_image *src, int32_t dst_x, int32_t dst_y, int32_t src_x, int32_t src_y, int32_t src_width, int32_t src_height) {
+	assert(src_x + src_width - 1 < src->width);
+	assert(src_y + src_height - 1 < src->height);
+
+	int32_t dst_x1 = dst_x;
+	int32_t dst_y1 = dst_y;
+	int32_t dst_x2 = dst_x + src_width - 1;
+	int32_t dst_y2 = dst_y + src_height - 1;
+	int32_t src_x1 = src_x;
+	int32_t src_y1 = src_y;
+
+	if (dst_x1 >= dst->width) return;
+	if (dst_x2 < 0) return;
+	if (dst_y1 >= dst->height) return;
+	if (dst_y2 < 0) return;
+
+	if (dst_x1 < 0) {
+		src_x1 -= dst_x1;
+		dst_x1 = 0;
+	}
+	if (dst_y1 < 0) {
+		src_y1 -= dst_y1;
+		dst_y1 = 0;
+	}
+	if (dst_x2 >= dst->width) dst_x2 = dst->width - 1;
+	if (dst_y2 >= dst->height) dst_y2 = dst->height - 1;
+
+	int32_t clipped_width = dst_x2 - dst_x1 + 1;
+	int32_t dst_next_row = dst->width - clipped_width;
+	int32_t src_next_row = src->width - clipped_width;
+	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
+	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
+	for (int32_t y = dst_y1; y <= dst_y2; y++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
+			*dst_pixel++ = *src_pixel++;
+		}
+		dst_pixel += dst_next_row;
+		src_pixel += src_next_row;
+	}
+}
+
+void r96_blit_region_keyed(r96_image *dst, r96_image *src, int32_t dst_x, int32_t dst_y, int32_t src_x, int32_t src_y, int32_t src_width, int32_t src_height, uint32_t color_key) {
+	assert(src_x + src_width - 1 < src->width);
+	assert(src_y + src_height - 1 < src->height);
+
+	int32_t dst_x1 = dst_x;
+	int32_t dst_y1 = dst_y;
+	int32_t dst_x2 = dst_x + src_width - 1;
+	int32_t dst_y2 = dst_y + src_height - 1;
+	int32_t src_x1 = src_x;
+	int32_t src_y1 = src_y;
+
+	if (dst_x1 >= dst->width) return;
+	if (dst_x2 < 0) return;
+	if (dst_y1 >= dst->height) return;
+	if (dst_y2 < 0) return;
+
+	if (dst_x1 < 0) {
+		src_x1 -= dst_x1;
+		dst_x1 = 0;
+	}
+	if (dst_y1 < 0) {
+		src_y1 -= dst_y1;
+		dst_y1 = 0;
+	}
+	if (dst_x2 >= dst->width) dst_x2 = dst->width - 1;
+	if (dst_y2 >= dst->height) dst_y2 = dst->height - 1;
+
+	int32_t clipped_width = dst_x2 - dst_x1 + 1;
+	int32_t dst_next_row = dst->width - clipped_width;
+	int32_t src_next_row = src->width - clipped_width;
+	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
+	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
+	for (dst_y = dst_y1; dst_y <= dst_y2; dst_y++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
+			uint32_t src_color = *src_pixel;
+			uint32_t dst_color = *dst_pixel;
+			*dst_pixel = src_color != color_key ? src_color : dst_color;
+			src_pixel++;
+			dst_pixel++;
+		}
+		dst_pixel += dst_next_row;
+		src_pixel += src_next_row;
+	}
+}
+
+void r96_blit_region_keyed_tinted(r96_image *dst, r96_image *src, int32_t dst_x, int32_t dst_y, int32_t src_x, int32_t src_y, int32_t src_width, int32_t src_height, uint32_t color_key, uint32_t tint) {
+	assert(src_x + src_width - 1 < src->width);
+	assert(src_y + src_height - 1 < src->height);
+
+	int32_t dst_x1 = dst_x;
+	int32_t dst_y1 = dst_y;
+	int32_t dst_x2 = dst_x + src_width - 1;
+	int32_t dst_y2 = dst_y + src_height - 1;
+	int32_t src_x1 = src_x;
+	int32_t src_y1 = src_y;
+
+	if (dst_x1 >= dst->width) return;
+	if (dst_x2 < 0) return;
+	if (dst_y1 >= dst->height) return;
+	if (dst_y2 < 0) return;
+
+	if (dst_x1 < 0) {
+		src_x1 -= dst_x1;
+		dst_x1 = 0;
+	}
+	if (dst_y1 < 0) {
+		src_y1 -= dst_y1;
+		dst_y1 = 0;
+	}
+	if (dst_x2 >= dst->width) dst_x2 = dst->width - 1;
+	if (dst_y2 >= dst->height) dst_y2 = dst->height - 1;
+
+	uint32_t tint_r = R96_R(tint);
+	uint32_t tint_g = R96_G(tint);
+	uint32_t tint_b = R96_B(tint);
+
+	int32_t clipped_width = dst_x2 - dst_x1 + 1;
+	int32_t dst_next_row = dst->width - clipped_width;
+	int32_t src_next_row = src->width - clipped_width;
+	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
+	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
+	for (dst_y = dst_y1; dst_y <= dst_y2; dst_y++) {
+		for (int32_t i = 0; i < clipped_width; i++) {
+			uint32_t src_color = *src_pixel;
+			uint32_t dst_color = *dst_pixel;
+			*dst_pixel = src_color != color_key ? R96_ARGB(
+														  R96_A(src_color),
+														  ((R96_R(src_color) * tint_r) >> 8) & 0xff,
+														  ((R96_G(src_color) * tint_g) >> 8) & 0xff,
+														  ((R96_B(src_color) * tint_b) >> 8) & 0xff)
+												: dst_color;
+			src_pixel++;
+			dst_pixel++;
+		}
+		dst_pixel += dst_next_row;
+		src_pixel += src_next_row;
+	}
+}
+
+void r96_text(r96_image *image, r96_font *font, const char *text, int32_t x, int32_t y) {
+	int32_t line_x = x;
+	int32_t line_y = y;
+	uint32_t end = strlen(text);
+	uint32_t index = 0;
+	while (index < end) {
+		uint32_t c = r96_next_utf8_codepoint(text, &index, end);
+		if (c == '\n') {
+			line_y += font->glyph_height;
+			line_x = x;
+			continue;
+		}
+		if (c == '\t') {
+			line_x += font->glyph_width * font->tab_size;
+			continue;
+		}
+		if (c < ' ') {
+			continue;
+		}
+
+		int32_t glyph_index = c - ' ';
+		if (glyph_index > 16 * 14 - 1) continue;
+		int32_t glyph_x = (glyph_index % 16);
+		int32_t glyph_y = (glyph_index - glyph_x) / 16;
+		glyph_x *= font->glyph_width;
+		glyph_y *= font->glyph_height;
+
+		r96_blit_region_keyed(image, &font->glyphs, line_x, line_y, glyph_x, glyph_y, font->glyph_width, font->glyph_height, 0x0);
+
+		line_x += font->glyph_width;
+	}
+}
+
+void r96_text_tinted(r96_image *image, r96_font *font, const char *text, int32_t x, int32_t y, uint32_t tint) {
+	int32_t line_x = x;
+	int32_t line_y = y;
+	uint32_t end = strlen(text);
+	uint32_t index = 0;
+	while (index < end) {
+		uint32_t c = r96_next_utf8_codepoint(text, &index, end);
+		if (c == '\n') {
+			line_y += font->glyph_height;
+			line_x = x;
+			continue;
+		}
+		if (c == '\t') {
+			line_x += font->glyph_width * font->tab_size;
+			continue;
+		}
+		if (c < ' ') {
+			continue;
+		}
+
+		int32_t glyph_index = c - ' ';
+		if (glyph_index > 16 * 14 - 1) continue;
+		int32_t glyph_x = (glyph_index % 16);
+		int32_t glyph_y = (glyph_index - glyph_x) / 16;
+		glyph_x *= font->glyph_width;
+		glyph_y *= font->glyph_height;
+
+		r96_blit_region_keyed_tinted(image, &font->glyphs, line_x, line_y, glyph_x, glyph_y, font->glyph_width, font->glyph_height, 0x0, tint);
+
+		line_x += font->glyph_width;
 	}
 }

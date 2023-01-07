@@ -23,7 +23,8 @@ void rect_opt(r96_image *image, int32_t x1, int32_t y1, int32_t width, int32_t h
 	int32_t next_row = image->width - clipped_width;
 	uint32_t *pixel = image->pixels + y1 * image->width + x1;
 	for (int y = y1; y <= y2; y++) {
-		for (int i = 0; i < clipped_width; i++) {
+		int32_t num_pixels = clipped_width;
+		while (num_pixels--) {
 			*pixel++ = color;
 		}
 		pixel += next_row;

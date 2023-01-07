@@ -41,5 +41,32 @@
                 "command": "${workspaceFolder}/tools/web/run-web.bat ${command:cmake.getLaunchTargetDirectory} ${command:cmake.getLaunchTargetFilename}",
             }
         },
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "DOS debug target",
+            "executable": "${command:cmake.getLaunchTargetPath}.exe",
+            "target": "localhost:5123",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/tools/dos/gdb/gdb",
+            "preLaunchTask": "r96-task-dosbox-debug",
+            "internalConsoleOptions": "neverOpen",
+            "stopAtConnect": true
+        },
+        {
+            "type": "node-terminal",
+            "name": "DOS run target",
+            "request": "launch",
+            "preLaunchTask": "CMake: build",
+            "command": "${workspaceFolder}/tools/dos/dosbox-x/dosbox-x -conf ${workspaceFolder}/tools/dos/dosbox-x.conf -fastlaunch -exit ${command:cmake.getLaunchTargetPath}.exe && exit",
+            "windows": {
+                "name": "DOS run target",
+                "type": "node-terminal",
+                "request": "launch",
+                "command": "${workspaceFolder}/tools/dos/run-dos.bat ${command:cmake.getLaunchTargetPath}; exit",
+                "cwd": "${workspaceFolder}"
+            }
+        },
     ]
 }

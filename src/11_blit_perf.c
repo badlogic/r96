@@ -267,7 +267,7 @@ int main(void) {
 
 	r96_image output;
 	r96_image_init(&output, 320, 240);
-	struct mfb_window *window = mfb_open("11_blit_perf", output.width * 3, output.height * 3);
+	struct mfb_window *window = mfb_open("11_blit_perf", output.width * 2, output.height * 2);
 	struct mfb_timer *timer = mfb_timer_create();
 	do {
 		r96_clear_with_color(&output, 0xff222222);

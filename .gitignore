@@ -5,3 +5,7 @@ tools/log.txt
 tools/web/emsdk
 tools/desktop/ninja
 tools/desktop/log.txt
+tools/dos/gdb
+tools/dos/djgpp
+tools/dos/dosbox-x
+tools/web/static-server

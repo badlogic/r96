@@ -127,6 +127,28 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/web/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
                 "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/desktop/ninja/ninja"
             }
+        },
+        {
+            "name": "dos-debug",
+            "displayName": "DOS debug",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/dos/toolchain-djgpp.cmake"
+            }
+        },
+        {
+            "name": "dos-release",
+            "displayName": "DOS release",
+            "description": "",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/dos/toolchain-djgpp.cmake"
+            }
         }
     ]
 }

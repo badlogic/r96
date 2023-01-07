@@ -56,7 +56,7 @@ elif [[ "$os" == "cygwin" ]] || [[ "$os" == "msys" ]] || [[ $(uname -r) =~ WSL ]
 
     echo "--- Clang"
     curl -L $clang_url --output clang.zip
-    unzip clang.zip >> ../log.txt 2>&1
+    unzip -o clang.zip >> ../log.txt 2>&1
     rm clang.zip
     mv llvm-mingw-20220906-msvcrt-x86_64 clang
 else
@@ -68,7 +68,7 @@ echo "--- Ninja"
 mkdir -p ninja
 pushd ninja > /dev/null
 curl -L $ninja_url --output ninja.zip
-unzip ninja.zip >> ../log.txt 2>&1
+unzip -o ninja.zip >> ../log.txt 2>&1
 rm ninja.zip    
 popd > /dev/null
 
