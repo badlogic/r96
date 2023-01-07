@@ -32,7 +32,7 @@ void blit_keyed(r96_image *dst, r96_image *src, int x, int y, uint32_t color_key
 	int32_t src_next_row = src->width - clipped_width;
 	uint32_t *dst_pixel = dst->pixels + dst_y1 * dst->width + dst_x1;
 	uint32_t *src_pixel = src->pixels + src_y1 * src->width + src_x1;
-	for (int y = dst_y1; y <= dst_y2; y++) {
+	for (y = dst_y1; y <= dst_y2; y++) {
 		int32_t num_pixels = clipped_width;
 		while (num_pixels--) {
 			uint32_t color = *src_pixel;
@@ -57,7 +57,7 @@ int main(void) {
 
 	r96_image output;
 	r96_image_init(&output, 320, 240);
-	struct mfb_window *window = mfb_open("10_blit_keyed", output.width * 3, output.height * 3);
+	struct mfb_window *window = mfb_open("10_blit_keyed", output.width * 2, output.height * 2);
 
 	do {
 		r96_clear_with_color(&output, 0xff222222);

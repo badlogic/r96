@@ -18,9 +18,13 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
     endif()
 endif()
 
-add_compile_options(-Wall -Wextra -Wpedantic -Wno-implicit-fallthrough)
+if (NOT DJGPP)
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wno-implicit-fallthrough)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-implicit-fallthrough)
+endif()
 
-add_library(r96 "src/r96/r96.c")
+add_library(r96 "src/r96/r96.c" "src/r96/stb_image.c")
 add_executable(r96_00_basic_window "src/00_basic_window.c")
 add_executable(r96_01_drawing_a_pixel "src/01_drawing_a_pixel.c")
 add_executable(r96_02_image "src/02_image.c")
@@ -33,6 +37,10 @@ add_executable(r96_08_image_file "src/08_image_file.c")
 add_executable(r96_09_blit "src/09_blit.c")
 add_executable(r96_10_blit_keyed "src/10_blit_keyed.c")
 add_executable(r96_11_blit_perf "src/11_blit_perf.c")
+add_executable(r96_12_hello_dos "src/12_hello_dos.c")
+add_executable(r96_13_blit_region "src/13_blit_region.c")
+add_executable(r96_14_fonts "src/14_fonts.c")
+add_executable(r96_15_font_fun "src/15_font_fun.c")
 
 add_custom_target(r96_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory

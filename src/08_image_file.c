@@ -7,7 +7,7 @@ int main(void) {
 		printf("Couldn't load file 'assets/grunt.png'\n");
 		return -1;
 	}
-	printf("Loaded file 'assets/grunt.png', %ix%i pixels\n", image.width, image.height);
+	printf("Loaded file 'assets/grunt.png', %ix%i pixels\n", (int) image.width, (int) image.height);
 	r96_image_dispose(&image);
 	return 0;
 }

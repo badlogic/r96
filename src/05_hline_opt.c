@@ -19,7 +19,7 @@ void hline(r96_image *image, int32_t x1, int32_t x2, int32_t y, uint32_t color) 
 
 	uint32_t *pixels = image->pixels + y * image->width + x1;
 	int32_t num_pixels = x2 - x1 + 1;
-	while(num_pixels--) {
+	while (num_pixels--) {
 		*pixels++ = color;
 	}
 }

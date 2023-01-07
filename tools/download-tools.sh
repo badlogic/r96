@@ -7,4 +7,6 @@ rm -rf log.txt
 desktop/download-desktop-tools.sh
 echo
 web/download-web-tools.sh
+echo
+dos/download-dos-tools.sh
 popd > /dev/null

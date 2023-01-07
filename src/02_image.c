@@ -18,7 +18,7 @@ int main(void) {
 			int32_t mouse_x = mfb_get_mouse_x(window);
 			int32_t mouse_y = mfb_get_mouse_y(window);
 			uint32_t color = r96_get_pixel(&image, mouse_x, mouse_y);
-			printf("(%i, %i) = { alpha: %i, red: %i, green: %i, blue: %i }\n", mouse_x, mouse_y, R96_A(color), R96_R(color), R96_G(color), R96_B(color));
+			printf("(%i, %i) = { alpha: %i, red: %i, green: %i, blue: %i }\n", (int)mouse_x, (int)mouse_y, R96_A(color), R96_R(color), R96_G(color), R96_B(color));
 		}
 
 		mfb_update_ex(window, image.pixels, image.width, image.height);
