@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Desktop debug target",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.getLaunchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${command:cmake.getLaunchTargetDirectory}",
+            "environment": [],
+            "preLaunchTask": "CMake: build",
+            "MIMode": "lldb",
+            "windows": {
+                "name": "Desktop debug target",
+                "type": "cppvsdbg",
+                "request": "launch",
+                "program": "${command:cmake.getLaunchTargetPath}",
+                "console": "integratedTerminal",
+            },
+            "linux": {
+                "name": "Desktop debug target",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "${command:cmake.getLaunchTargetPath}",
+                "MIMode": "gdb",
+            }
+        },
+        {
+            "type": "node-terminal",
+            "name": "Web debug target",
+            "request": "launch",
+            "preLaunchTask": "CMake: build",
+            "command": "tools/web/static-server ${command:cmake.getLaunchTargetDirectory} 8123 $(tools/web/target-to-html.sh ${command:cmake.getLaunchTargetFilename})",
+            "cwd": "${workspaceFolder}",
+            "windows": {
+                "type": "node-terminal",
+                "name": "Web run",
+                "request": "launch",
+                "command": "${workspaceFolder}/tools/web/run-web.bat ${command:cmake.getLaunchTargetDirectory} ${command:cmake.getLaunchTargetFilename}",
+            }
+        },
+    ]
+}

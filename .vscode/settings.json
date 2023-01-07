@@ -1,0 +1,35 @@
+{
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"C_Cpp.inlayHints.parameterNames.enabled": false,
+	"C_Cpp.inlayHints.referenceOperator.enabled": false,
+	"cmake.configureOnOpen": true,
+	"cmake.configureOnEdit": true,
+	"cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+	"cmake.statusbar.advanced": {
+		"testPreset": {
+			"visibility": "hidden"
+		},
+		"ctest": {
+			"visibility": "hidden"
+		},
+		"launch": {
+			"visibility": "hidden"
+		},
+		"launchTarget": {
+			"visibility": "default"
+		},
+		"debug": {
+			"visibility": "hidden"
+		},
+		"buildTarget": {
+			"visibility": "hidden"
+		},
+		"buildPreset": {
+			"visibility": "hidden"
+		}
+	},
+	"debug.showInStatusBar": "always",
+	"editor.formatOnSave": true,
+	"editor.tabSize": 3,
+	"debug.onTaskErrors": "debugAnyway"
+}

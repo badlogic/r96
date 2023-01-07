@@ -1,0 +1,7 @@
+.DS_Store
+.cache
+build
+tools/log.txt
+tools/web/emsdk
+tools/desktop/ninja
+tools/desktop/log.txt

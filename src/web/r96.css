@@ -1,0 +1,34 @@
+body {
+    background: #232729;
+    font: 200 16px/1.5 monospace;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+    font-weight: 400;
+    font-size: 16px;
+    color: #bbbbbb;
+}
+
+a, a:visited {
+    color: rgb(254, 121, 5);
+    text-decoration: none;
+}
+
+.r96_content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.r96_content canvas {
+    background: black;
+}
+
+.r96_content .console {
+    margin-top: 1em;
+    width: 640px;
+    height: 40ch;
+    background: black;
+    color: #bbbbbb;
+    font-size: 14px;
+    overflow: scroll;
+}

@@ -1,0 +1,1 @@
+msiexec /i cmake.msi /passive ADD_CMAKE_TO_PATH=System
