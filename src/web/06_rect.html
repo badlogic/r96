@@ -1,0 +1,30 @@
+<html>
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' href='r96.css'>
+    <script src='r96_06_rect.js'></script>
+</head>
+<body class='r96_content'>
+    <h2>Rectangle</h2>
+    <canvas id='06_rect'></canvas>
+    <pre class="console"></pre>
+</body>
+<script>
+    async function init() {
+        let consoleDiv = document.getElementsByClassName("console")[0];
+        let module = {};
+        module.print = module.printErr = (data) => {
+            console.log(data);
+            consoleDiv.innerHTML += data + "</br>";
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        await r96_06_rect(module)
+    }
+
+    init();
+</script>
+</html>

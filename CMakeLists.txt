@@ -10,11 +10,25 @@ FetchContent_Declare(minifb GIT_REPOSITORY https://github.com/badlogic/minifb GI
 set(MINIFB_BUILD_EXAMPLES CACHE INTERNAL FALSE)
 FetchContent_MakeAvailable(minifb)
 
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT result)
+    if(result)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
+endif()
+
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-implicit-fallthrough)
 
 add_library(r96 "src/r96/r96.c")
 add_executable(r96_00_basic_window "src/00_basic_window.c")
 add_executable(r96_01_drawing_a_pixel "src/01_drawing_a_pixel.c")
+add_executable(r96_02_image "src/02_image.c")
+add_executable(r96_03_clear_profiling "src/03_clear_profiling.c")
+add_executable(r96_04_hline "src/04_hline.c")
+add_executable(r96_05_hline_opt "src/05_hline_opt.c")
+add_executable(r96_06_rect "src/06_rect.c")
+add_executable(r96_07_rect_opt "src/07_rect_opt.c")
 
 add_custom_target(r96_web_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
