@@ -29,6 +29,16 @@ add_executable(r96_04_hline "src/04_hline.c")
 add_executable(r96_05_hline_opt "src/05_hline_opt.c")
 add_executable(r96_06_rect "src/06_rect.c")
 add_executable(r96_07_rect_opt "src/07_rect_opt.c")
+add_executable(r96_08_image_file "src/08_image_file.c")
+add_executable(r96_09_blit "src/09_blit.c")
+add_executable(r96_10_blit_keyed "src/10_blit_keyed.c")
+add_executable(r96_11_blit_perf "src/11_blit_perf.c")
+
+add_custom_target(r96_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:r96_00_basic_window>/assets
+)
 
 add_custom_target(r96_web_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -40,6 +50,7 @@ get_property(targets DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
 list(REMOVE_ITEM targets minifb r96 r96_assets r96_web_assets)
 foreach(target IN LISTS targets)
     target_link_libraries(${target} LINK_PUBLIC minifb r96)    
+    add_dependencies(${target} r96_assets)
     if(EMSCRIPTEN)
         add_dependencies(${target} r96_web_assets)
         target_link_options(${target} PRIVATE
