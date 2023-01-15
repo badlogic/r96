@@ -61,6 +61,8 @@ uint32_t r96_get_pixel(r96_image *image, int32_t x, int32_t y);
 
 void r96_hline(r96_image *image, int32_t x1, int32_t x2, int32_t y, uint32_t color);
 
+void r96_vline(r96_image *image, int32_t x, int32_t y1, int32_t y2, uint32_t color);
+
 void r96_rect(r96_image *image, int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color);
 
 void r96_blit(r96_image *dst, r96_image *src, int32_t x, int32_t y);

@@ -191,6 +191,30 @@ void r96_hline(r96_image *image, int32_t x1, int32_t x2, int32_t y, uint32_t col
 	}
 }
 
+void r96_vline(r96_image *image, int32_t x, int32_t y1, int32_t y2, uint32_t color) {
+	if (y1 > y2) {
+		int32_t tmp = y2;
+		y2 = y1;
+		y1 = tmp;
+	}
+
+	if (y1 >= image->height) return;
+	if (y2 < 0) return;
+	if (x < 0) return;
+	if (x >= image->width) return;
+
+	if (y1 < 0) y1 = 0;
+	if (y2 >= image->height) y2 = image->height - 1;
+
+	uint32_t *pixels = image->pixels + y1 * image->width + x;
+	uint32_t next_row = image->width;
+	int32_t num_pixels = y2 - y1 + 1;
+	while (num_pixels--) {
+		*pixels = color;
+		pixels += next_row;
+	}
+}
+
 void r96_rect(r96_image *image, int32_t x1, int32_t y1, int32_t width, int32_t height, uint32_t color) {
 	if (width <= 0) return;
 	if (height <= 0) return;
