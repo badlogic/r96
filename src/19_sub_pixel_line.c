@@ -1,6 +1,8 @@
 #include <MiniFB.h>
 #include <math.h>
+#include <stdio.h>
 #include "r96/r96.h"
+#include <assert.h>
 
 #define FIXED_8_BITS 8
 #define FIXED_8_ONE (1 << FIXED_8_BITS)
@@ -112,19 +114,24 @@ void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, ui
 	uint32_t num_pixels;
 	if (num_pixels_x >= num_pixels_y) {
 		step_x = int_to_fixed(delta_x < 0 ? -1 : 1, FIXED_8_BITS);
-		step_y = fixed_div(delta_y, abs(delta_x), FIXED_8_BITS);
+		step_y = fixed_div(delta_y, num_pixels_x, FIXED_8_BITS);
 		num_pixels = fixed_to_int(num_pixels_x, FIXED_8_BITS);
 	} else {
-		step_x = fixed_div(delta_x, abs(delta_y), FIXED_8_BITS);
+		step_x = fixed_div(delta_x, num_pixels_y, FIXED_8_BITS);
 		step_y = int_to_fixed(delta_y < 0 ? -1 : 1, FIXED_8_BITS);
 		num_pixels = fixed_to_int(num_pixels_y, FIXED_8_BITS);
 	}
 
 	int32_t x = x1_fp, y = y1_fp;
+	// int32_t last_px = -1, last_py = -1;
 	for (uint32_t i = 0; i < num_pixels; i++) {
 		int32_t px = fixed_to_int(x, FIXED_8_BITS);
 		int32_t py = fixed_to_int(y, FIXED_8_BITS);
+		// assert(last_px != px && last_py != py);
 		r96_set_pixel(image, px, py, color);
+		printf("%i %i\n", px, py);
+		// last_px = px;
+		// last_py = py;
 		x += step_x;
 		y += step_y;
 	}
@@ -391,6 +398,8 @@ int main(void) {
 	struct mfb_window *window = mfb_open("19_sub_pixel_line", window_width * 4, window_height * 4);
 	r96_image output;
 	r96_image_init(&output, window_width, window_height);
+	r96_font font;
+	r96_font_init(&font, "assets/tamzen5x9.png", 5, 9);
 	struct mfb_timer *timer = mfb_timer_create();
 	float delta = M_PI / 4, a = 4, b = 6;
 	do {
@@ -399,6 +408,7 @@ int main(void) {
 
 		r96_clear_with_color(&output, R96_ARGB(0xff, 0x22, 0x22, 0x22));
 
+		// delta = 2.48f;
 
 		float last_x = 0, last_y = 0;
 		int segments = 50;
@@ -407,15 +417,20 @@ int main(void) {
 			float theta = i / (float) segments * M_PI;
 			float x = 100 * sinf(a * theta + delta) / 2 + window_width / 2.0;
 			float y = 100 * sinf(b * theta) / 2 + window_height / 2.0;
-			uint32_t color = R96_ARGB(0xff, rand() % 255, rand() % 255, rand() % 255);
+			// uint32_t color = R96_ARGB(0xff, rand() % 255, rand() % 255, rand() % 255);
 			if (i > 0) {
-				line_fixed_point(&output, (int) last_x - 100, (int) last_y, (int) x - 100, (int) y, color);
-				line_sub_pixel(&output, last_x, last_y, x, y, color);
-				line_tom(&output, last_x + 100, last_y, x + 100, y, color);
+				line_fixed_point(&output, (int) last_x - 100, (int) last_y, (int) x - 100, (int) y, 0xffff0000);
+				line_sub_pixel(&output, last_x, last_y, x, y, 0xff00ff00);
+				line_tom(&output, last_x + 100, last_y, x + 100, y, 0xffff00ff);
 			}
 			last_x = x;
 			last_y = y;
 		}
+
+		char text[100];
+		sprintf(text, "delta: %f", delta);
+		r96_text(&output, &font, text, 0, 0, 0xffffffff);
+		printf("delta %f\n", delta);
 
 		if (mfb_update_ex(window, output.pixels, window_width, window_height) != STATE_OK) break;
 	} while (mfb_wait_sync(window));
