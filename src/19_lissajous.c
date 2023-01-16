@@ -73,11 +73,11 @@ void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, fl
 	int32_t num_pixels_y = abs(delta_y);
 
 	if (delta_x == 0) {
-		r96_vline(image, (int) x1, (int) y1, (int) y2, color);
+		r96_vline(image, (int) (x1 + 0.5f), (int) (y1 + 0.5f), (int) (y2 + 0.5f), color);
 		return;
 	}
 	if (delta_y == 0) {
-		r96_hline(image, (int) x1, (int) x2, (int) y1, color);
+		r96_hline(image, (int) (x1 + 0.5f), (int) (x2 + 0.5f), (int) (y1 + 0.5f), color);
 		return;
 	}
 
@@ -120,8 +120,10 @@ int main(void) {
 			float theta = i / (float) segments * M_PI;
 			float x = 100 * sinf(a * theta + delta) / 2 + window_width / 2.0;
 			float y = 100 * sinf(b * theta) / 2 + window_height / 2.0;
-			if (i > 0) line_fixed_point(&output, (int) last_x - 75, (int) last_y, (int) x - 75, (int) y, 0xff00ff00);
-			if (i > 0) line_sub_pixel(&output, last_x + 75, last_y, x + 75, y, 0xffff0000);
+			if (i > 0) {
+				line_fixed_point(&output, (int) last_x - 75, (int) last_y, (int) x - 75, (int) y, 0xff00ff00);
+				line_sub_pixel(&output, last_x + 75, last_y, x + 75, y, 0xffff0000);
+			}
 			last_x = x;
 			last_y = y;
 		}
