@@ -1,43 +1,6 @@
 #include <MiniFB.h>
 #include <math.h>
-#include <stdio.h>
-#include "MiniFB_enums.h"
 #include "r96/r96.h"
-
-void line_naive(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
-	int32_t delta_x = (x2 - x1);
-	int32_t delta_y = (y2 - y1);
-	int32_t num_pixels_x = abs(delta_x);
-	int32_t num_pixels_y = abs(delta_y);
-
-	if (delta_x == 0) {
-		r96_vline(image, x1, y1, y2, color);
-		return;
-	}
-	if (delta_y == 0) {
-		r96_hline(image, x1, x2, y1, color);
-		return;
-	}
-
-	float step_x, step_y;
-	uint32_t num_pixels;
-	if (num_pixels_x >= num_pixels_y) {
-		step_x = delta_x < 0 ? -1 : 1;
-		step_y = (float) delta_y / num_pixels_x;
-		num_pixels = num_pixels_x;
-	} else {
-		step_x = (float) delta_x / num_pixels_y;
-		step_y = delta_y < 0 ? -1 : 1;
-		num_pixels = num_pixels_y;
-	}
-
-	float x = x1 + 0.5f, y = y1 + 0.5f;
-	for (uint32_t i = 0; i < num_pixels; i++) {
-		r96_set_pixel(image, (int32_t) x, (int32_t) y, color);
-		x += step_x;
-		y += step_y;
-	}
-}
 
 #define FIXED_8_BITS 8
 #define FIXED_8_ZERO_POINT_FIVE (1 << (FIXED_8_BITS - 1))
