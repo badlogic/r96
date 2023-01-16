@@ -7,26 +7,17 @@
 void line_naive(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
 	int32_t delta_x = (x2 - x1);
 	int32_t delta_y = (y2 - y1);
-	int32_t num_pixels_x = abs(delta_x);
-	int32_t num_pixels_y = abs(delta_y);
-
-	if (delta_x == 0) {
-		r96_vline(image, x1, y1, y2, color);
-		return;
-	}
-	if (delta_y == 0) {
-		r96_hline(image, x1, x2, y1, color);
-		return;
-	}
+	int32_t num_pixels_x = abs(delta_x) + 1;
+	int32_t num_pixels_y = abs(delta_y) + 1;
 
 	float step_x, step_y;
 	uint32_t num_pixels;
 	if (num_pixels_x >= num_pixels_y) {
 		step_x = delta_x < 0 ? -1 : 1;
-		step_y = (float) delta_y / num_pixels_x;
+		step_y = (float) delta_y / abs(delta_x);
 		num_pixels = num_pixels_x;
 	} else {
-		step_x = (float) delta_x / num_pixels_y;
+		step_x = (float) delta_x / abs(delta_y);
 		step_y = delta_y < 0 ? -1 : 1;
 		num_pixels = num_pixels_y;
 	}
@@ -42,10 +33,6 @@ void line_naive(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2
 #define FIXED_8_BITS 8
 #define FIXED_8_ZERO_POINT_FIVE (1 << (FIXED_8_BITS - 1))
 
-static inline int32_t float_to_fixed(float v, int32_t bits) {
-	return (int32_t) (v * (1 << bits));
-}
-
 static inline int32_t int_to_fixed(int32_t v, int32_t bits) {
 	return (int32_t) (v * (1 << bits));
 }
@@ -54,11 +41,17 @@ static inline int32_t fixed_to_int(int32_t v, int32_t bits) {
 	return v >> bits;
 }
 
+static inline int32_t fixed_div(int32_t a, int32_t b, int32_t bits) {
+	return ((int64_t) a * (1 << bits)) / b;
+}
+
 void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
 	int32_t delta_x = (x2 - x1);
 	int32_t delta_y = (y2 - y1);
-	int32_t num_pixels_x = abs(delta_x);
-	int32_t num_pixels_y = abs(delta_y);
+	int32_t num_pixels_x = abs(delta_x) + 1;
+	int32_t num_pixels_y = abs(delta_y) + 1;
+	delta_x = int_to_fixed(delta_x, FIXED_8_BITS);
+	delta_y = int_to_fixed(delta_y, FIXED_8_BITS);
 
 	if (delta_x == 0) {
 		r96_vline(image, x1, y1, y2, color);
@@ -73,10 +66,10 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 	uint32_t num_pixels;
 	if (num_pixels_x >= num_pixels_y) {
 		step_x = int_to_fixed(delta_x < 0 ? -1 : 1, FIXED_8_BITS);
-		step_y = float_to_fixed((float) delta_y / num_pixels_x, FIXED_8_BITS);
+		step_y = fixed_div(delta_y, abs(delta_x), FIXED_8_BITS);
 		num_pixels = num_pixels_x;
 	} else {
-		step_x = float_to_fixed((float) delta_x / num_pixels_y, FIXED_8_BITS);
+		step_x = fixed_div(delta_x, abs(delta_y), FIXED_8_BITS);
 		step_y = int_to_fixed(delta_y < 0 ? -1 : 1, FIXED_8_BITS);
 		num_pixels = num_pixels_y;
 	}
