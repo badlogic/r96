@@ -69,8 +69,8 @@ void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, fl
 	int32_t y2_fp = float_to_fixed(y2, FIXED_8_BITS);
 	int32_t delta_x = (x2_fp - x1_fp);
 	int32_t delta_y = (y2_fp - y1_fp);
-	int32_t num_pixels_x = abs(delta_x);
-	int32_t num_pixels_y = abs(delta_y);
+	int32_t num_pixels_x = fixed_round(abs(delta_x), FIXED_8_BITS);
+	int32_t num_pixels_y = fixed_round(abs(delta_y), FIXED_8_BITS);
 
 	if (delta_x == 0) {
 		r96_vline(image, (int) (x1 + 0.5f), (int) (y1 + 0.5f), (int) (y2 + 0.5f), color);
@@ -86,11 +86,11 @@ void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, fl
 	if (num_pixels_x >= num_pixels_y) {
 		step_x = int_to_fixed(delta_x < 0 ? -1 : 1, FIXED_8_BITS);
 		step_y = fixed_div(delta_y, num_pixels_x);
-		num_pixels = fixed_to_int(fixed_round(num_pixels_x, FIXED_8_BITS), FIXED_8_BITS);
+		num_pixels = fixed_to_int(num_pixels_x, FIXED_8_BITS);
 	} else {
 		step_x = fixed_div(delta_x, num_pixels_y);
 		step_y = int_to_fixed(delta_y < 0 ? -1 : 1, FIXED_8_BITS);
-		num_pixels = fixed_to_int(fixed_round(num_pixels_y, FIXED_8_BITS), FIXED_8_BITS);
+		num_pixels = fixed_to_int(num_pixels_y, FIXED_8_BITS);
 	}
 
 	int32_t x = x1_fp, y = y1_fp;
