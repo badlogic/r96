@@ -56,7 +56,7 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 
 int main(void) {
 	const int window_width = 320, window_height = 240;
-	struct mfb_window *window = mfb_open("18_fixed_point_line", window_width * 2, window_height * 2);
+	struct mfb_window *window = mfb_open("17_fixed_point_line", window_width * 2, window_height * 2);
 	r96_image output;
 	r96_image_init(&output, window_width, window_height);
 

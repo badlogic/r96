@@ -111,11 +111,11 @@ void line_bresenham(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_
 
 int main(void) {
 	const int window_width = 320, window_height = 240;
-	struct mfb_window *window = mfb_open("16_naive_line", window_width * 2, window_height * 2);
+	struct mfb_window *window = mfb_open("18_line_perf", window_width * 2, window_height * 2);
 	r96_image output;
 	r96_image_init(&output, window_width, window_height);
 	r96_font font;
-	r96_font_init(&font, "assets/ibmvga.png", 8, 16);
+	r96_font_init(&font, "assets/tamzen5x9.png", 5, 9);
 	struct mfb_timer *timer = mfb_timer_create();
 	do {
 		srand(0);
@@ -139,7 +139,7 @@ int main(void) {
 		double bresenham_time = mfb_timer_delta(timer);
 
 		char text[500];
-		sprintf(text, "naive:       %f secs\nfixed point: %f secs\nbresenham:   %fsecs", naive_time, fixed_point_time, bresenham_time);
+		sprintf(text, "naive:       %f secs\nfixed point: %f secs\nbresenham:   %f secs", naive_time, fixed_point_time, bresenham_time);
 		int32_t text_width, text_height;
 		r96_font_get_text_bounds(&font, text, &text_width, &text_height);
 		r96_rect(&output, 0, 0, text_width, text_height, 0xff222222);
