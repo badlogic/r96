@@ -63,10 +63,6 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 }
 
 void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, float color) {
-	x1 += 0.5f;
-	y1 += 0.5f;
-	x2 += 0.5f;
-	y2 += 0.5f;
 	int32_t x1_fp = float_to_fixed(x1, FIXED_8_BITS);
 	int32_t y1_fp = float_to_fixed(y1, FIXED_8_BITS);
 	int32_t x2_fp = float_to_fixed(x2, FIXED_8_BITS);
