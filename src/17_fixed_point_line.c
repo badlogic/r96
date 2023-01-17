@@ -58,17 +58,16 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 
 int main(void) {
 	const int window_width = 320, window_height = 240;
-	struct mfb_window *window = mfb_open("17_fixed_point_line", window_width * 2, window_height * 2);
+	struct mfb_window *window = mfb_open("17_fixed_point_line", window_width * 4, window_height * 4);
 	r96_image output;
-	r96_image_init(&output, window_width, window_height);
-
+	r96_image_init(&output, window_width / 2, window_height / 2);
 	do {
 		r96_clear_with_color(&output, R96_ARGB(0xff, 0x22, 0x22, 0x22));
-		int32_t mouse_x = mfb_get_mouse_x(window) >> 1;
-		int32_t mouse_y = mfb_get_mouse_y(window) >> 1;
-		line_fixed_point(&output, 160, 100, mouse_x, mouse_y, 0xffff0000);
+		int32_t mouse_x = mfb_get_mouse_x(window) >> 3;
+		int32_t mouse_y = mfb_get_mouse_y(window) >> 3;
+		line_fixed_point(&output, 80, 50, mouse_x, mouse_y, 0xffff0000);
 
-		if (mfb_update_ex(window, output.pixels, window_width, window_height) != STATE_OK) break;
+		if (mfb_update_ex(window, output.pixels, output.width, output.height) != STATE_OK) break;
 	} while (mfb_wait_sync(window));
 	return 0;
 }
