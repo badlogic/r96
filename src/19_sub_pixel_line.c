@@ -1,6 +1,7 @@
 #include <MiniFB.h>
 #include <math.h>
 #include <stdio.h>
+#include "MiniFB_enums.h"
 #include "r96/r96.h"
 #include <assert.h>
 
@@ -65,6 +66,38 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 	}
 }
 
+void line_float(r96_image *image, float x1, float y1, float x2, float y2, uint32_t color) {
+	float delta_x = (x2 - x1);
+	float delta_y = (y2 - y1);
+	float num_pixels_x = fabs(floorf(x2) - floorf(x1)) + 1;
+	float num_pixels_y = fabs(floorf(y2) - floorf(y1)) + 1;
+
+	float step_x, step_y;
+	uint32_t num_pixels;
+	if (num_pixels_x >= num_pixels_y) {
+		step_x = delta_x < 1 ? -1 : 1;
+		step_y = delta_y / fabs(delta_x);
+		num_pixels = num_pixels_x;
+	} else {
+		step_x = delta_x / fabs(delta_y);
+		step_y = delta_y < 1 ? -1 : 1;
+		num_pixels = num_pixels_y;
+	}
+	float x = x1, y = y1;
+	printf("n: %i\n", num_pixels);
+	printf("sx: %f sy: %f\n", step_x, step_y);
+	for (uint32_t i = 0; i < num_pixels; i++) {
+		int32_t px = x;
+		int32_t py = y;
+		r96_set_pixel(image, x, y, color);
+		printf("%f %f %i %i\n", x, y, px, py);
+		x += step_x;
+		y += step_y;
+	}
+	printf("t %f %f\n", x2, y2);
+	printf("end\n");
+}
+
 void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, uint32_t color) {
 	int32_t x1_fp = float_to_fixed(x1, FIXED_8_BITS);
 	int32_t y1_fp = float_to_fixed(y1, FIXED_8_BITS);
@@ -101,10 +134,10 @@ void line_sub_pixel(r96_image *image, float x1, float y1, float x2, float y2, ui
 		int32_t px = fixed_to_int(x, FIXED_8_BITS);
 		int32_t py = fixed_to_int(y, FIXED_8_BITS);
 		r96_set_pixel(image, px, py, color);
+		float fx = x / (float) (1 << FIXED_8_BITS);
+		float fy = y / (float) (1 << FIXED_8_BITS);
+		printf("%f %f %i %i\n", fx, fy, px, py);
 		if (i == num_pixels - 1) {
-			float fx = x / (float) (1 << FIXED_8_BITS);
-			float fy = y / (float) (1 << FIXED_8_BITS);
-			printf("%f %f %i %i\n", fx, fy, px, py);
 			assert(px == fixed_to_int(x2_fp, FIXED_8_BITS));
 			assert(py == fixed_to_int(y2_fp, FIXED_8_BITS));
 		}
@@ -149,16 +182,29 @@ void test(float x1, float y1, float x2, float y2) {
 	const int window_width = 320, window_height = 240;
 	struct mfb_window *window = mfb_open("19_sub_pixel_line", window_width * 5, window_height * 5);
 	r96_image output;
-	r96_image_init(&output, window_width, window_height);
+	r96_image_init(&output, 32, 24);
 	do {
 		r96_clear_with_color(&output, R96_ARGB(0xff, 0x22, 0x22, 0x22));
-		line_sub_pixel(&output, x1, y1, x2, y2, 0xffff0000);
-		if (mfb_update_ex(window, output.pixels, window_width, window_height) != STATE_OK) break;
+		printf("x1: %f y1: %f\n", x1, y1);
+		printf("x2: %f y2: %f\n", x2, y2);
+		r96_set_pixel(&output, x1, y1, 0xff00ff00);
+		r96_set_pixel(&output, x2, y2, 0xff00ff00);
+		line_float(&output, x1, y1, x2, y2, 0xffff0000);
+		// line_sub_pixel(&output, x1, y1, x2, y2, 0xffff0000);
+		if (mfb_get_mouse_button_buffer(window)[MOUSE_LEFT]) {
+			x2 = mfb_get_mouse_x(window) / ((float) window_width * 5) * 32;
+			y2 = mfb_get_mouse_y(window) / ((float) window_height * 5) * 24;
+		}
+		if (mfb_get_mouse_button_buffer(window)[MOUSE_RIGHT]) {
+			x1 = mfb_get_mouse_x(window) / ((float) window_width * 5) * 32;
+			y1 = mfb_get_mouse_y(window) / ((float) window_height * 5) * 24;
+		}
+		if (mfb_update_ex(window, output.pixels, output.width, output.height) != STATE_OK) break;
 	} while (mfb_wait_sync(window));
 }
 
 int main(void) {
 	// lissajous();
-	test(270.355347, 120, 278.037109, 138.406219);
+	test(0.355347, 0.000000, 8.037109, 18.406219);
 	return 0;
 }
