@@ -37,6 +37,10 @@ int32_t fixed_div(int32_t a, int32_t b, int32_t bits) {
 	return ((int64_t) a * (1 << bits)) / b;
 }
 
+static inline int32_t fixed_mul(int32_t a, int32_t b, int32_t bits) {
+	return (int32_t) (((int64_t) a * (int64_t) b) >> bits);
+}
+
 int32_t fixed_floor(int32_t v, int32_t bits) {
 	int32_t fpOne = (1 << bits);
 	int32_t subMask = fpOne - 1;
@@ -170,7 +174,7 @@ void line_naive_incremental_fixed(r96_image *image, float i_x1, float i_y1, floa
 
 	uint32_t num_pixels = num_pixels_x > num_pixels_y ? num_pixels_x : num_pixels_y;
 	if (num_pixels == 0) {
-		r96_set_pixel(image, x1, y1, color);
+		r96_set_pixel(image, i_x1, i_y1, color);
 		return;
 	}
 	int32_t num_pixels_fixed = int_to_fixed(num_pixels, bits);
@@ -180,6 +184,45 @@ void line_naive_incremental_fixed(r96_image *image, float i_x1, float i_y1, floa
 	int32_t x = x1, y = y1;
 	for (uint32_t i = 0; i <= num_pixels; i++) {
 		r96_set_pixel(image, fixed_to_int(x, bits), fixed_to_int(y, bits), color);
+		x += step_x;
+		y += step_y;
+	}
+}
+
+void line_naive_offset_incremental_fixed(r96_image *image, float i_x1, float i_y1, float i_x2, float i_y2, uint32_t color) {
+	int bits = 8;
+	int32_t x1 = float_to_fixed(i_x1, bits);
+	int32_t y1 = float_to_fixed(i_y1, bits);
+	int32_t x2 = float_to_fixed(i_x2, bits);
+	int32_t y2 = float_to_fixed(i_y2, bits);
+	int32_t delta_x = (x2 - x1);
+	int32_t delta_y = (y2 - y1);
+	int32_t num_pixels_x = fabs(floorf(i_x2) - floorf(i_x1)) + 1;
+	int32_t num_pixels_y = fabs(floorf(i_y2) - floorf(i_y1)) + 1;
+
+	uint32_t num_pixels = num_pixels_x > num_pixels_y ? num_pixels_x : num_pixels_y;
+	if (num_pixels == 1) {
+		r96_set_pixel(image, i_x1, i_y1, color);
+		return;
+	}
+
+	int32_t x = 0, y = 0;
+	int32_t step_x = 0;
+	int32_t step_y = 0;
+	if (num_pixels_x >= num_pixels_y) {
+		x = (fixed_floor(x1, bits) + fixed_one_half(bits));
+		step_x = fixed_one(bits);
+		step_y = fixed_div(delta_y, abs(delta_x), bits);
+		y = y1 + fixed_mul(x - x1, step_y, bits);
+	} else {
+		y = (fixed_floor(y1, bits) + fixed_one_half(bits));
+		step_y = fixed_one(bits);
+		step_x = fixed_div(delta_x, abs(delta_y), bits);
+		x = x1 + fixed_mul(y - y1, step_x, bits);
+	}
+
+	for (uint32_t i = 0; i < num_pixels; i++) {
+		r96_set_pixel(image, fixed_to_int(x + fixed_one_half(bits), bits), fixed_to_int(y + fixed_one_half(bits), bits), color);
 		x += step_x;
 		y += step_y;
 	}
@@ -262,9 +305,9 @@ int main(void) {
 			// delta = 1.048116f;
 			// delta = 0.722428f;
 			// delta = 1.577438f;
-			mfb_timer_reset(timer);
 			mouse_down = false;
 		}
+		mfb_timer_reset(timer);
 
 		float last_x = 0, last_y = 0;
 		int segments = 50;
@@ -287,6 +330,7 @@ int main(void) {
 		// r96_text(&output, &font, text, 0, 0, 0xffffffff);
 		// printf("delta: %f\n", delta);
 
+		r96_text(&output, &font, "tap/click + drag to rotate manually", 70, 10, 0xffffffff);
 		r96_text(&output, &font, "dda_fixed_point", 10, 50, 0xffffffff);
 		r96_text(&output, &font, "tom_bres_sliced_fixed", 110, 50, 0xffffffff);
 		r96_text(&output, &font, "dda_int", 240, 50, 0xffffffff);

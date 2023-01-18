@@ -33,6 +33,10 @@ int32_t fixed_div(int32_t a, int32_t b, int32_t bits) {
 	return ((int64_t) a * (1 << bits)) / b;
 }
 
+int32_t fixed_mul(int32_t a, int32_t b, int32_t bits) {
+	return (int32_t) (((int64_t) a * (int64_t) b) >> bits);
+}
+
 int32_t fixed_floor(int32_t v, int32_t bits) {
 	int32_t fpOne = (1 << bits);
 	int32_t subMask = fpOne - 1;
@@ -89,6 +93,48 @@ void line_naive_non_incremental(r96_image *image, float x1, float y1, float x2, 
 
 		r96_rect(image, (int32_t) x * pixel_size, (int32_t) y * pixel_size, pixel_size, pixel_size, i % 2 ? 0xffbbbbbb : 0xff555555);
 		r96_set_pixel(image, x * pixel_size, y * pixel_size, 0xffff00ff);
+	}
+}
+
+void line_naive_offset_incremental_fixed(r96_image *image, float i_x1, float i_y1, float i_x2, float i_y2, int bits) {
+	int32_t x1 = float_to_fixed(i_x1, bits);
+	int32_t y1 = float_to_fixed(i_y1, bits);
+	int32_t x2 = float_to_fixed(i_x2, bits);
+	int32_t y2 = float_to_fixed(i_y2, bits);
+	int32_t delta_x = (x2 - x1);
+	int32_t delta_y = (y2 - y1);
+	int32_t num_pixels_x = fabs(floorf(i_x2) - floorf(i_x1)) + 1;
+	int32_t num_pixels_y = fabs(floorf(i_y2) - floorf(i_y1)) + 1;
+	int32_t pixel_size = image->width / 32;
+
+	uint32_t num_pixels = num_pixels_x > num_pixels_y ? num_pixels_x : num_pixels_y;
+	if (num_pixels == 1) {
+		r96_set_pixel(image, fixed_to_int(x1, bits), fixed_to_int(y1, bits), 0xffff00ff);
+		return;
+	}
+
+	int32_t x = 0, y = 0;
+	int32_t step_x = 0;
+	int32_t step_y = 0;
+	if (num_pixels_x >= num_pixels_y) {
+		x = (fixed_floor(x1, bits) + fixed_one_half(bits));
+		step_x = fixed_one(bits);
+		step_y = fixed_div(delta_y, abs(delta_x), bits);
+		y = y1 + fixed_mul(x - x1, step_y, bits);
+	} else {
+		y = (fixed_floor(y1, bits) + fixed_one_half(bits));
+		step_y = fixed_one(bits);
+		step_x = fixed_div(delta_x, abs(delta_y), bits);
+		x = x1 + fixed_mul(y - y1, step_x, bits);
+	}
+
+	for (uint32_t i = 0; i < num_pixels; i++) {
+		int px = fixed_to_int(x, bits), py = fixed_to_int(y, bits);
+		r96_rect(image, px * pixel_size, py * pixel_size, pixel_size, pixel_size, i % 2 ? 0xffbbbbbb : 0xff555555);
+		r96_set_pixel(image, fixed_to_float(x, bits) * pixel_size, fixed_to_float(y, bits) * pixel_size, 0xffff00ff);
+		//r96_set_pixel(image, 0xffff00ff);
+		x += step_x;
+		y += step_y;
 	}
 }
 
@@ -237,7 +283,7 @@ void test(float x1, float y1, float x2, float y2) {
 		printf("px1: %i py1: %i\n", px1, py1);
 		printf("px2: %i py2: %i\n", px2, py2);
 		if (mode == 0) line_naive(&output, x1, y1, x2, y2);
-		if (mode == 1) line_quantized(&output, x1, y1, x2, y2, bits);
+		if (mode == 1) line_naive_offset_incremental_fixed(&output, x1, y1, x2, y2, bits);
 		// if (mode == 3) line_sub_pixel(&output, x1, y1, x2, y2, bits);
 		//if (mode == 2) line_quantized2(&output, x1, y1, x2, y2, bits);
 		if (mode == 2) line_naive_non_incremental(&output, x1, y1, x2, y2, bits);
