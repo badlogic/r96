@@ -46,6 +46,7 @@ add_executable(r96_17_fixed_point_line "src/17_fixed_point_line.c")
 add_executable(r96_18_line_perf "src/18_line_perf.c")
 add_executable(r96_19_sub_pixel_line "src/19_sub_pixel_line.c")
 add_executable(r96_20_line_clipping "src/20_line_clipping.c")
+add_executable(r96_21_test "src/21_test.c")
 
 add_custom_target(r96_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
