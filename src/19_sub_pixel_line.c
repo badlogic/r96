@@ -279,7 +279,7 @@ void line_tom(r96_image *image, float f_X1, float f_Y1, float f_X2, float f_Y2, 
 
 int main(void) {
 	const int window_width = 320, window_height = 240;
-	int scale = 2;
+	int scale = 4;
 	struct mfb_window *window = mfb_open("19_sub_pixel_line", window_width * scale, window_height * scale);
 	r96_image output;
 	r96_image_init(&output, window_width, window_height);
@@ -304,7 +304,8 @@ int main(void) {
 			delta += mfb_timer_delta(timer) / 40;
 			// delta = 1.048116f;
 			// delta = 0.722428f;
-			// delta = 1.577438f;
+			delta = 1.577438f;
+			// delta = 2.121372;
 			mouse_down = false;
 		}
 		mfb_timer_reset(timer);
@@ -325,10 +326,10 @@ int main(void) {
 			last_y = y;
 		}
 
-		// char text[50];
-		// sprintf(text, "delta: %f", delta);
-		// r96_text(&output, &font, text, 0, 0, 0xffffffff);
-		// printf("delta: %f\n", delta);
+		char text[50];
+		sprintf(text, "delta: %f", delta);
+		r96_text(&output, &font, text, 0, 0, 0xffffffff);
+		printf("delta: %f\n", delta);
 
 		r96_text(&output, &font, "tap/click + drag to rotate manually", 70, 10, 0xffffffff);
 		r96_text(&output, &font, "dda_fixed_point", 10, 50, 0xffffffff);

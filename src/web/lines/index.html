@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Line Rasterization Playground</title>
+   <style>
+      @font-face {
+         font-family: Tamzen;
+         font-size: 18px;
+         src: url(Tamzen6x12r.ttf);
+      }
+
+      body {
+         font-family: Tamzen;
+         margin: 0;
+         padding: 0;
+         background: #232729;
+         font: 200 16px/1.5 monospace;
+         font-feature-settings: "kern" 1;
+         font-kerning: normal;
+         font-weight: 400;
+         font-size: 16px;
+         color: #bbbbbb;
+      }
+
+      canvas {
+         width: 100%;
+         height: 100vh;
+         image-rendering: pixelated;
+      }
+
+      #controls {
+         position: absolute;
+         top: 0;
+         left: 0;
+         font-size: 20px;
+         color: #fff;
+         display: flex;
+         flex-direction: row;
+      }
+   </style>
+</head>
+
+<body>
+   <canvas id="output"></canvas>
+   <div id="controls">
+      <select id="algorithm">
+         <option selected="true" value="lineIntegerDDA">Integer DDA</option>
+         <option value="lineIntegerBresenham">Integer Bresenham</option>
+         <option value="lineSubPixelBresenham1">Sub Pixel Bresenham</option>
+         <option value="lineFloatDDA">Float DDA</option>
+         <option value="lineFloatDDACenterSampling">Float DDA Center Sampling</option>
+         <option value="lineFloatDDACenterSamplingIncludeEndpoint">Float DDA Center Sampling include
+            endpoint</option>
+      </select>
+      <button id="snap">Snap to pixel centers</button>
+      <button id="reset">Reset line</button>
+      <button id="swap">Swap endpoints</button>
+   </div>
+</body>
+<script src='index.js'></script>
+
+</html>

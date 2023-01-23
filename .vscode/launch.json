@@ -2,6 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Lines",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://127.0.0.1:8080/src/web/lines/",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
             "name": "Desktop debug target",
             "type": "cppdbg",
             "request": "launch",

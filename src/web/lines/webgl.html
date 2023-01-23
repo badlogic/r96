@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+   <script src="https://marioslab.io/dump/lightgl.js"></script>
+   <script>
+
+      var angle = 0;
+      var gl = GL.create({ antialias: false });
+      document.body.appendChild(gl.canvas);
+      gl.canvas.style.width = "640px";
+      gl.canvas.style.height = "480px";
+      gl.canvas.width = 320;
+      gl.canvas.height = 240;
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+      let delta = Math.PI / 4, a = 4, b = 6;
+
+      gl.ondraw = function () {
+         let canvas = document.querySelector("canvas");
+         canvas.style.imageRendering = "pixelated";
+         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+         gl.matrixMode(gl.PROJECTION);
+         gl.loadIdentity();
+         gl.ortho(0, canvas.width, canvas.height, 0, -1, 1);
+         gl.matrixMode(gl.MODELVIEW);
+         gl.loadIdentity();
+
+         delta += 0.016 / 40;
+         //delta = 1.048116;
+         // delta = 0.722428;
+         delta = 1.577438;
+         //delta = 2.121372;
+
+         let last_x = 0, last_y = 0;
+         let segments = 50;
+         gl.begin(gl.LINES);
+         for (let i = 0; i <= segments; i++) {
+            let theta = i / segments * Math.PI;
+            let x = 100 * Math.sin(a * theta + delta) / 2 + canvas.width / 2.0;
+            let y = 100 * Math.sin(b * theta) / 2 + canvas.height / 2.0;
+            if (i > 0) {
+               gl.color(1, 0, 0);
+               gl.vertex(last_x - 105, last_y, 0);
+               gl.vertex(x - 105, y, 0);
+               gl.color(0, 1, 0);
+               gl.vertex(last_x, last_y, 0);
+               gl.vertex(x, y, 0);
+               gl.color(1, 0, 1);
+               gl.vertex(Math.floor(last_x) + 105, Math.floor(last_y), 0);
+               gl.vertex(Math.floor(x) + 105, Math.floor(y), 0);
+            }
+
+            last_x = x;
+            last_y = y;
+         }
+         gl.end();
+      };
+
+
+      gl.animate();
+
+   </script>
+</body>
+
+</html>
