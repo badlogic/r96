@@ -1,7 +1,6 @@
 #include <MiniFB.h>
 #include <math.h>
 #include <stdio.h>
-#include "MiniFB_enums.h"
 #include "r96/r96.h"
 
 void line_naive(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
@@ -31,15 +30,16 @@ void line_naive(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int32_t y2
 }
 
 int main(void) {
-	const int window_width = 320, window_height = 240;
-	struct mfb_window *window = mfb_open("16_naive_line", window_width * 4, window_height * 4);
+	const int window_width = 80, window_height = 60;
+	int scale = 8;
+	struct mfb_window *window = mfb_open("16_naive_line", window_width * scale, window_height * scale);
 	r96_image output;
-	r96_image_init(&output, window_width / 2, window_height / 2);
+	r96_image_init(&output, window_width, window_height);
 	do {
 		r96_clear_with_color(&output, R96_ARGB(0xff, 0x22, 0x22, 0x22));
-		int32_t mouse_x = mfb_get_mouse_x(window) >> 3;
-		int32_t mouse_y = mfb_get_mouse_y(window) >> 3;
-		line_naive(&output, 80, 50, mouse_x, mouse_y, 0xffff0000);
+		int32_t mouse_x = mfb_get_mouse_x(window) / scale;
+		int32_t mouse_y = mfb_get_mouse_y(window) / scale;
+		line_naive(&output, window_width / 2, window_height / 2, mouse_x, mouse_y, 0xffff0000);
 
 		if (mfb_update_ex(window, output.pixels, output.width, output.height) != STATE_OK) break;
 	} while (mfb_wait_sync(window));

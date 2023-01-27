@@ -27,15 +27,6 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 	delta_x = int_to_fixed(delta_x, FIXED_8_BITS);
 	delta_y = int_to_fixed(delta_y, FIXED_8_BITS);
 
-	if (delta_x == 0) {
-		r96_vline(image, x1, y1, y2, color);
-		return;
-	}
-	if (delta_y == 0) {
-		r96_hline(image, x1, x2, y1, color);
-		return;
-	}
-
 	int32_t step_x, step_y;
 	uint32_t num_pixels;
 	if (num_pixels_x >= num_pixels_y) {
@@ -57,15 +48,16 @@ void line_fixed_point(r96_image *image, int32_t x1, int32_t y1, int32_t x2, int3
 }
 
 int main(void) {
-	const int window_width = 320, window_height = 240;
-	struct mfb_window *window = mfb_open("17_fixed_point_line", window_width * 4, window_height * 4);
+	const int window_width = 80, window_height = 60;
+	int scale = 8;
+	struct mfb_window *window = mfb_open("17_fixed_point_line", window_width * scale, window_height * scale);
 	r96_image output;
-	r96_image_init(&output, window_width / 2, window_height / 2);
+	r96_image_init(&output, window_width, window_height);
 	do {
 		r96_clear_with_color(&output, R96_ARGB(0xff, 0x22, 0x22, 0x22));
-		int32_t mouse_x = mfb_get_mouse_x(window) >> 3;
-		int32_t mouse_y = mfb_get_mouse_y(window) >> 3;
-		line_fixed_point(&output, 80, 50, mouse_x, mouse_y, 0xffff0000);
+		int32_t mouse_x = mfb_get_mouse_x(window) / scale;
+		int32_t mouse_y = mfb_get_mouse_y(window) / scale;
+		line_fixed_point(&output, window_width / 2, window_height / 2, mouse_x, mouse_y, 0xffff0000);
 
 		if (mfb_update_ex(window, output.pixels, output.width, output.height) != STATE_OK) break;
 	} while (mfb_wait_sync(window));
