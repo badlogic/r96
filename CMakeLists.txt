@@ -41,6 +41,12 @@ add_executable(r96_12_hello_dos "src/12_hello_dos.c")
 add_executable(r96_13_blit_region "src/13_blit_region.c")
 add_executable(r96_14_fonts "src/14_fonts.c")
 add_executable(r96_15_font_fun "src/15_font_fun.c")
+add_executable(r96_16_naive_line "src/16_naive_line.c")
+add_executable(r96_17_fixed_point_line "src/17_fixed_point_line.c")
+add_executable(r96_18_float_bresenham "src/18_float_bresenham.c")
+add_executable(r96_19_integer_bresenham "src/19_integer_bresenham.c")
+add_executable(r96_20_bresenham_opt "src/20_bresenham_opt.c")
+add_executable(r96_21_line_perf "src/21_line_perf.c")
 
 add_custom_target(r96_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
